@@ -53,50 +53,58 @@ def save_matrices_to_txt(matrices_dict, filename="all"):
     matrices_dict: 字典，键为矩阵名称，值为矩阵数据
     filename: 保存的文件名
     """
+    # 获取当前脚本的绝对路径
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # 创建输出目录的完整路径
+    save_dir = os.path.join(current_dir, "measured_data_in")
+    
     # 确保目录存在
-    save_dir = "./measured_data_in"
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
+    os.makedirs(save_dir, exist_ok=True)
     
     # 完整的文件路径
     filepath = os.path.join(save_dir, f"{filename}.txt")
     
-    with open(filepath, "w", encoding="utf-8") as f:
-        # 遍历所有矩阵
-        for idx, (name, matrix) in enumerate(matrices_dict.items()):
-            # 将输入转换为 numpy 数组
-            matrix = np.array(matrix)
-            
-            # 写入矩阵名称
-            f.write(f"=== {name} ===\n")
-            
-            # 处理一维数组
-            if matrix.ndim == 1:
-                matrix = matrix.reshape(1, -1)
-            
-            rows, cols = matrix.shape
-            f.write("[")  # 整个矩阵的开始中括号
-            f.write("\n")
-            
-            for i in range(rows):
-                f.write("[")  # 每行的开始中括号
-                for j in range(cols):
-                    f.write(repr(matrix[i, j]))  # 使用 repr() 保留所有小数位
-                    if j < cols - 1:
-                        f.write(", ")  # 数字间用逗号和空格分隔
-                f.write("]")  # 每行的结束中括号
-                if i < rows - 1:
-                    f.write(",\n")  # 行之间用逗号和换行分隔
-                else:
-                    f.write("\n")
-            
-            f.write("]")  # 整个矩阵的结束中括号
-            
-            # 如果不是最后一个矩阵，添加两个换行作为间隔
-            if idx < len(matrices_dict) - 1:
-                f.write("\n\n")
-    
-    print(f"已保存所有矩阵数据到：{filepath}")
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
+            # 遍历所有矩阵
+            for idx, (name, matrix) in enumerate(matrices_dict.items()):
+                # 将输入转换为 numpy 数组
+                matrix = np.array(matrix)
+                
+                # 写入矩阵名称
+                f.write(f"=== {name} ===\n")
+                
+                # 处理一维数组
+                if matrix.ndim == 1:
+                    matrix = matrix.reshape(1, -1)
+                
+                rows, cols = matrix.shape
+                f.write("[")  # 整个矩阵的开始中括号
+                f.write("\n")
+                
+                for i in range(rows):
+                    f.write("[")  # 每行的开始中括号
+                    for j in range(cols):
+                        f.write(repr(matrix[i, j]))  # 使用 repr() 保留所有小数位
+                        if j < cols - 1:
+                            f.write(", ")  # 数字间用逗号和空格分隔
+                    f.write("]")  # 每行的结束中括号
+                    if i < rows - 1:
+                        f.write(",\n")  # 行之间用逗号和换行分隔
+                    else:
+                        f.write("\n")
+                
+                f.write("]")  # 整个矩阵的结束中括号
+                
+                # 如果不是最后一个矩阵，添加两个换行作为间隔
+                if idx < len(matrices_dict) - 1:
+                    f.write("\n\n")
+        
+        print(f"已成功保存所有矩阵数据到：{filepath}")
+    except Exception as e:
+        print(f"保存文件时发生错误：{str(e)}")
+        raise
 
 def camera_calibrate(images_path, pattern_params):
     """
@@ -236,13 +244,15 @@ def hand_eye_calibrate(images_path, arm_pose_file, pattern_params):
 if __name__ == "__main__":
     # 设置标定板参数
     pattern_params = init_calibration_params(
-        pattern_cols=11,    # 标定板角点的列数
-        pattern_rows=8,     # 标定板角点的行数
-        square_size=0.035   # 标定板一格的长度 (单位: 米)
+        pattern_cols=11,    
+        pattern_rows=8,     
+        square_size=0.035   
     )
     
-    images_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'collect_data_in')
-    arm_pose_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), './collect_data_in/poses.txt')
+    # 使用绝对路径
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    images_path = os.path.join(current_dir, 'collect_data_in')
+    arm_pose_file = os.path.join(current_dir, 'collect_data_in', 'poses.txt')
 
     # 检查文件夹和文件是否存在
     if not os.path.exists(images_path):
@@ -266,21 +276,36 @@ if __name__ == "__main__":
         CamPose[:3, :3] = R
         CamPose[:3, 3] = t.flatten()
         
-        # 保存所有矩阵到txt文件
-        os.makedirs('measured_data_in', exist_ok=True)
-        np.savetxt('./measured_data_in/mtx.txt', mtx)
-        np.savetxt('./measured_data_in/dist.txt', dist)
-        np.savetxt('./measured_data_in/rotation_matrix.txt', R)
-        np.savetxt('./measured_data_in/translation_vector.txt', t)
-        np.savetxt('./measured_data_in/camera_pose.txt', CamPose)
-        
-        # 使用新的保存格式
+        # 统一使用新的保存方式
         matrices = {
             "内参矩阵": mtx,
             "畸变系数": dist,
             "旋转矩阵": R,
-            "平移向量": t
+            "平移向量": t,
+            "相机位姿": CamPose
         }
-        save_matrices_to_txt(matrices)
+        
+        try:
+            save_matrices_to_txt(matrices)
+            
+            # 为了兼容性，也单独保存各个矩阵
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            output_dir = os.path.join(current_dir, 'measured_data_in')
+            os.makedirs(output_dir, exist_ok=True)
+
+            for name, matrix in matrices.items():
+                filename = {
+                    "内参矩阵": "mtx.txt",
+                    "畸变系数": "dist.txt",
+                    "旋转矩阵": "rotation_matrix.txt",
+                    "平移向量": "translation_vector.txt",
+                    "相机位姿": "camera_pose.txt"
+                }[name]
+                
+                np.savetxt(os.path.join(output_dir, filename), matrix)
+                
+            print("所有矩阵数据已成功保存")
+        except Exception as e:
+            print(f"保存数据时发生错误：{str(e)}")
     else:
         print("标定失败，无法保存结果")

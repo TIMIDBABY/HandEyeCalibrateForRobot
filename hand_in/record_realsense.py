@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 import os
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 # 创建一个管道
 pipeline = rs.pipeline()
 
@@ -21,14 +23,21 @@ depth_scale = depth_sensor.get_depth_scale()
 print("Depth Scale is: ", depth_scale)
 
 # 创建measure_data文件夹（如果不存在）
-os.makedirs('measured_data_in', exist_ok=True)
-os.makedirs('measured_data_out', exist_ok=True)
+measured_data_in = os.path.join(current_dir, 'measured_data_in')
+os.makedirs(measured_data_in, exist_ok=True)
 
 # 保存depth_scale到文件
-with open(os.path.join('measured_data_in', 'camera_depth_scale.txt'), 'w') as f:
-    f.write(str(depth_scale))
-with open(os.path.join('measured_data_out', 'camera_depth_scale.txt'), 'w') as f:
-    f.write(str(depth_scale))
+try:
+    # 保存depth_scale到measured_data_in
+    depth_scale_path_out = os.path.join(measured_data_in, 'camera_depth_scale.txt')
+    with open(depth_scale_path_out, 'w') as f:
+        f.write(str(depth_scale))
+    print(f"深度标尺已保存至: {depth_scale_path_out}")
+
+except Exception as e:
+    print(f"保存深度标尺时发生错误: {str(e)}")
+    raise
+
 
 # 创建对齐对象
 # rs.align允许我们执行深度帧与其他帧的对齐

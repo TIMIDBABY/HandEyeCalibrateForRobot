@@ -1,6 +1,8 @@
 # 项目非必要文件
 __pycache__/
 *.pyc
+UR5_control/__pycache__/
+D435_control/__pycache__/
 hand_in/__pycache__/
 hand_out/__pycache__/
 Acc_test/__pycache__/

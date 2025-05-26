@@ -19,7 +19,7 @@
 手眼标定结束后运行各文件夹中的record_realsense.py获取相机深度数据，所获取的深度数据也会自动保存于各自的measured_data文件夹中;
 
 在手眼标定结束后可进入Acc_test文件夹，修改main.py中的各项数据，运行main.py进行手眼标定结果的验证；此验证仅适用于UR5与D435相机结合的项目，如果需要测试自己的项目，请自行替换相机文件（realsenseD435.py）与机器人文件（UR_Robot.py）。
-注意：该UR_Robot.py与UR5_control文件夹中的控制程序不一样！
+注意：该 UR_Robot.py 与 UR5_control 文件夹中的控制程序不一样！
 
 # Tips
 

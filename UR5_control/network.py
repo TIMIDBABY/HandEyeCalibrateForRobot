@@ -5,7 +5,7 @@ import time
 用以测试UR5的网络连接
 """
 
-robot_ip = "192.168.1.43"  # 修改为你的机器人IP
+robot_ip = "192.168.1.105"  # 修改为你的机器人IP
 
 def test_ur_connection(ip_address, ports_to_test=None):
     """测试UR机器人的网络连接"""

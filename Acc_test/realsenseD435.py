@@ -3,7 +3,7 @@ import pyrealsense2 as rs
 import numpy as np
 
 class RealsenseD435:
-    def __init__(self, width=1280, height=720, fps=30):
+    def __init__(self, width=640, height=480, fps=30):
         self.pipeline = rs.pipeline()
         self.config = rs.config()
         # 启用彩色和深度流

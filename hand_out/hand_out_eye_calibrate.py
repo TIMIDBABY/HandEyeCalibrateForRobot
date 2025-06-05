@@ -7,7 +7,15 @@ import os
 import cv2
 import numpy as np
 
+# 标定板角点列数
+cols = 11     
+# 标定版角点行数
+rows = 8      
+# 标定板角点间距，单位米
+size = 0.025  
+
 np.set_printoptions(precision=8, suppress=True)
+
 
 def euler_angles_to_rotation_matrix(rx, ry, rz):
     # 计算旋转矩阵
@@ -39,7 +47,7 @@ def inverse_transformation_matrix(R, t):
     t_inv = -np.dot(R_inv, t)
     return R_inv, t_inv
 
-def init_calibration_params(pattern_cols=11, pattern_rows=8, square_size=0.025):
+def init_calibration_params(pattern_cols=cols, pattern_rows=rows, square_size=size):
     """
     初始化标定参数
     
@@ -229,9 +237,9 @@ def hand_eye_calibrate(images_path, arm_pose_file, pattern_params):
 if __name__ == "__main__":
     # 设置标定板参数
     pattern_params = init_calibration_params(
-        pattern_cols=11,    
-        pattern_rows=8,     
-        square_size=0.035   
+        pattern_cols=cols,    
+        pattern_rows=rows,     
+        square_size=size   
     )
     
     # 使用绝对路径

@@ -7,7 +7,7 @@ import struct
 import util as util
 
 # UR5机械臂配置
-HOST = "192.168.3.6"
+HOST = "192.168.1.43"
 PORT = 30003
 tool_acc = 0.4
 PI = 3.141592653589
@@ -19,7 +19,7 @@ tcp_socket.connect((HOST, PORT))
 # 相机配置
 pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 pipeline.start(config)
 
 image_save_path = "./collect_data_out/"

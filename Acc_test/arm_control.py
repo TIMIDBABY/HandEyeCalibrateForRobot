@@ -25,7 +25,7 @@ import numpy as np
 import time
 import atexit
 
-ur_ip = "192.168.1.43"     #在这里替换为你的UR5 IP地址
+ur_ip = "192.168.1.105"     #在这里替换为你的UR5 IP地址
 speed = 0.3                #安全值：0.5
 acc   = 0.3                #安全值：0.5
 
@@ -107,15 +107,9 @@ class UR_Robot_Enhanced:
     
     def get_current_position(self):
         """获取当前位置信息（关节+TCP）"""
-        joints = self.get_current_joints()
-        pose = self.get_current_pose()
-        return {
-            'joints': joints,
-            'tcp_pose': pose,
-            'position': pose[:3],  # x, y, z
-            'orientation': pose[3:]  # rx, ry, rz
-        }
-    
+        self.get_current_joints()
+        self.get_current_pose()
+
     # ==================== 基础运动方法 ====================
     
     def move_j(self, joint_degrees, speed=speed, acceleration=acc):
@@ -155,22 +149,33 @@ class UR_Robot_Enhanced:
                 return False
         
         return self._safe_execute(_move_l)
-    
-    def move_c(self, via_pose, to_pose, speed=speed, acceleration=acc):
+
+
+
+    def move_c(self, via_pose, to_pose, speed=0.5, acceleration=0.3):
         """
-        圆弧运动 - TCP末端沿圆弧移动
-        via_pose: [x, y, z, rx, ry, rz] 中间点位置和姿态
-        to_pose: [x, y, z, rx, ry, rz] 终点位置和姿态
+        圆弧运动 - 位姿已经是 [x,y,z,rx,ry,rz] 旋转向量格式
         """
         def _move_c():
             print(f"🌀 圆弧运动: 经过 {[f'{pos:.3f}' for pos in via_pose[:3]]} 到达 {[f'{pos:.3f}' for pos in to_pose[:3]]}")
-            result = self.rtde_c.moveC(via_pose, to_pose, speed, acceleration)
             
-            if result:
-                print("✅ 运动命令发送成功")
+            # 直接使用位姿数据构建脚本
+            script = f"""
+    def move_arc():
+        movec(p[{','.join(map(str, via_pose))}], 
+            p[{','.join(map(str, to_pose))}], 
+            a={acceleration}, v={speed})
+    end
+
+    move_arc()
+    """
+            
+            try:
+                self.rtde_c.sendCustomScript(script)
+                print("✅ 圆弧运动脚本发送成功")
                 return True
-            else:
-                print("❌ 运动命令失败")
+            except Exception as e:
+                print(f"❌ 圆弧运动失败: {e}")
                 return False
         
         return self._safe_execute(_move_c)
@@ -273,7 +278,7 @@ class UR_Robot_Enhanced:
     
     def go_home(self):
         """回到初始位置"""
-        home_joints = [0, -70, 70, -90, -90, 0]
+        home_joints = [0, -90, 90, -90, -90, 0]
         print("🏠 回到初始位置...")
         return self.move_j(home_joints, speed=speed, acceleration=acc)
     
@@ -295,51 +300,6 @@ def main():
     try:
         # 创建机器人实例并连接
         robot = UR_Robot_Enhanced(ur_ip)  # 在最顶部修改机器人ip
-        
-        while True:
-            # 获取当前位置信息
-            # current_info = robot.get_current_position()
-            # print(f"当前位置信息: {current_info}")
-            
-            # 回到初始位置
-            # robot.go_home()
-
-            # 1. 关节运动示例
-            robot.move_j([0, -85, 65, -136, -90, 45.5])
-            time.sleep(0.5)
-            robot.move_j([-25, -70, 117, -221, -81, 55.08])
-            time.sleep(0.5)
-            # # 2. 单轴控制示例
-            # robot.move_x(0.1)     # 沿X轴移动10cm
-            # time.sleep(0.5)
-            # robot.move_x(-0.1)    # 沿X轴移动10cm
-            # time.sleep(0.5)
-            # robot.move_y(0.1)     # 沿Y轴移动-10cm
-            # time.sleep(0.5)
-            # robot.move_y(-0.2)    # 沿Y轴移动-20cm
-            # time.sleep(0.5)
-            # robot.move_z(0.1)     # 沿Z轴移动10cm
-            # time.sleep(0.5)
-            # robot.move_z(-0.2)    # 沿Z轴移动-20cm
-            # time.sleep(0.5)
-            # robot.go_home()
-            # time.sleep(3)
-            
-            # # 3. 旋转控制示例
-            # robot.rotate_rz(np.deg2rad(45))  # 绕Z轴旋转45度
-            # time.sleep(1)
-            
-            # # 4. 移动到指定位置示例
-            # robot.move_to_position(x=0.3, z=0.4)  # 只更新x和z坐标
-            # time.sleep(2)
-            
-            # # 5. 获取当前关节角度
-            # joints = robot.get_current_joints()
-            # print(f"当前关节角度: {joints}")
-            
-            # # 6. 获取当前TCP位姿
-            pose = robot.get_current_pose()
-            print(f"当前TCP位姿: {pose}")
 
     except Exception as e:
         print(f"❌ 程序执行失败: {e}")

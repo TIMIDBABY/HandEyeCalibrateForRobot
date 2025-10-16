@@ -339,7 +339,6 @@ class UR_Robot:
             print("Error: Could not get current pose")
             return False
 
-        # 检查当前位姿是否包含NaN值
         if np.any(np.isnan(current_pose)):
             print("Error: Current pose contains NaN values")
             return False
@@ -363,7 +362,6 @@ class UR_Robot:
             print("Error: Could not get current pose")
             return False
 
-        # 检查当前位姿是否包含NaN值
         if np.any(np.isnan(current_pose)):
             print("Error: Current pose contains NaN values")
             return False
@@ -387,7 +385,6 @@ class UR_Robot:
             print("Error: Could not get current pose")
             return False
 
-        # 检查当前位姿是否包含NaN值
         if np.any(np.isnan(current_pose)):
             print("Error: Current pose contains NaN values")
             return False

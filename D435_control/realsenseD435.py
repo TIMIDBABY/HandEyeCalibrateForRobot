@@ -2,16 +2,23 @@
 import pyrealsense2 as rs
 import numpy as np
 
+
 class RealsenseD435:
-    def __init__(self, width=1280, height=720, fps=30):
+    def __init__(self, width=640, height=480, fps=30):
         self.pipeline = rs.pipeline()
         self.config = rs.config()
+        # 将深度图对齐到彩色图坐标系，之后 depth[y, x] 才对应彩色图上的同一像素。
+        self.align_to_color = rs.align(rs.stream.color)
         # 启用彩色和深度流
         self.config.enable_stream(rs.stream.color, width, height, rs.format.bgr8, fps)
         self.config.enable_stream(rs.stream.depth, width, height, rs.format.z16, fps)
         try:
             self.pipeline_profile = self.pipeline.start(self.config)
-            self.depth_scale = self.pipeline_profile.get_device().first_depth_sensor().get_depth_scale()
+            self.depth_scale = (
+                self.pipeline_profile.get_device()
+                .first_depth_sensor()
+                .get_depth_scale()
+            )
             print("Realsense D435 相机初始化成功")
         except Exception as e:
             print(f"Realsense D435 相机初始化失败: {e}")
@@ -24,8 +31,9 @@ class RealsenseD435:
             return None, None
         try:
             frames = self.pipeline.wait_for_frames(timeout_ms=1000)
-            color_frame = frames.get_color_frame()
-            depth_frame = frames.get_depth_frame()
+            aligned_frames = self.align_to_color.process(frames)
+            color_frame = aligned_frames.get_color_frame()
+            depth_frame = aligned_frames.get_depth_frame()
             if not color_frame or not depth_frame:
                 print("未获取到彩色或深度帧")
                 return None, None
